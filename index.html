@@ -1021,9 +1021,11 @@
                             <small style="color: #888;">Date: ${new Date(vote.timestamp).toLocaleString()}</small>
                             <button class="delete-vote-btn" onclick="showDeleteVoteModal('${vote.cardNumber}')">🗑️ Delete</button>
                         </div>
-                        <span class="vote-status ${vote.status === 'edited' ? 'status-edited' : 'status-new'}">
-                            ${vote.status === 'edited' ? 'Edited' : 'New'}
-                        </span>
+                        <div style="display: flex; flex-direction: column; align-items: flex-end;">
+                            <span class="vote-status ${vote.status === 'edited' ? 'status-edited' : 'status-new'}">
+                                ${vote.status === 'edited' ? 'Edited' : 'New'}
+                            </span>
+                        </div>
                     `;
                     votesContent.appendChild(voteItem);
                 });
