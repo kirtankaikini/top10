@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Voting App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(-45deg, #00c6ff, #0072ff, #667eea, #2196f3);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="25" cy="25" r="2" fill="rgba(255,255,255,0.1)" opacity="0.8"><animate attributeName="opacity" values="0.8;0.2;0.8" dur="3s" repeatCount="indefinite"/></circle><circle cx="75" cy="25" r="3" fill="rgba(255,255,255,0.15)" opacity="0.6"><animate attributeName="opacity" values="0.6;0.1;0.6" dur="4s" repeatCount="indefinite"/></circle><circle cx="25" cy="75" r="2.5" fill="rgba(255,255,255,0.12)" opacity="0.7"><animate attributeName="opacity" values="0.7;0.2;0.7" dur="5s" repeatCount="indefinite"/></circle><circle cx="75" cy="75" r="2" fill="rgba(255,255,255,0.1)" opacity="0.9"><animate attributeName="opacity" values="0.9;0.3;0.9" dur="2.5s" repeatCount="indefinite"/></circle><circle cx="50" cy="50" r="1.5" fill="rgba(255,255,255,0.2)" opacity="0.5"><animate attributeName="opacity" values="0.5;0.1;0.5" dur="6s" repeatCount="indefinite"/></circle></svg>');
+            animation: float 20s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+            padding: 30px;
+            width: 100%;
+            max-width: 500px;
+            position: relative;
+            overflow: hidden;
+            margin: 10px;
+            min-height: auto;
+        }
+
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #00c6ff, #0072ff, #2196f3);
+            animation: shimmer 3s ease-in-out infinite;
+        }
+
+        @keyframes shimmer {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 25px;
+            font-weight: 600;
+            font-size: clamp(1.5rem, 4vw, 2rem);
+            position: relative;
+            cursor: pointer;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            padding: 10px;
+            border-radius: 10px;
+            transition: all 0.2s ease;
+        }
+
+        /* Hidden admin access - triple tap on title */
+        h1:active {
+            transform: scale(0.95);
+            background: rgba(0, 198, 255, 0.1);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+            font-size: clamp(0.9rem, 2.5vw, 1rem);
+        }
+
+        input[type="text"], input[type="number"], input[type="password"] {
+            width: 100%;
+            padding: clamp(12px, 3vw, 15px);
+            border: 2px solid #e1e5e9;
+            border-radius: 12px;
+            font-size: clamp(14px, 3vw, 16px);
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+            box-sizing: border-box;
+        }
+
+        input[type="text"]:focus, input[type="number"]:focus, input[type="password"]:focus {
+            outline: none;
+            border-color: #0072ff;
+            background: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 114, 255, 0.2);
+        }
+
+        .btn {
+            width: 100%;
+            padding: clamp(12px, 3vw, 15px);
+            border: none;
+            border-radius: 12px;
+            font-size: clamp(14px, 3vw, 16px);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-sizing: border-box;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #00c6ff, #0072ff);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 114, 255, 0.3);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+            margin-top: 10px;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr));
+            gap: clamp(15px, 4vw, 20px);
+            margin: 20px 0;
+        }
+
+        .product-card {
+            border: 3px solid #e1e5e9;
+            border-radius: 15px;
+            padding: clamp(15px, 4vw, 20px);
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .product-card.selected {
+            border-color: #0072ff;
+            background: linear-gradient(135deg, rgba(0, 198, 255, 0.1), rgba(0, 114, 255, 0.1));
+        }
+
+        .product-image {
+            width: 100%;
+            height: clamp(100px, 20vw, 150px);
+            max-height: 150px;
+            object-fit: cover;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        .product-name {
+            font-weight: 600;
+            color: #333;
+            font-size: clamp(0.9rem, 2.5vw, 1rem);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .admin-header {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .admin-nav {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .nav-btn {
+            padding: clamp(8px, 2vw, 10px) clamp(15px, 4vw, 20px);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: clamp(0.8rem, 2vw, 0.9rem);
+            flex: 1;
+            min-width: 80px;
+        }
+
+        .nav-btn.active {
+            background: #0072ff;
+            color: white;
+        }
+
+        .nav-btn:not(.active) {
+            background: #e9ecef;
+            color: #666;
+        }
+
+        .dashboard-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr));
+            gap: clamp(15px, 4vw, 20px);
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: clamp(15px, 4vw, 20px);
+            border-radius: 12px;
+            text-align: center;
+            border-left: 4px solid #0072ff;
+        }
+
+        .stat-number {
+            font-size: clamp(1.5rem, 6vw, 2rem);
+            font-weight: bold;
+            color: #0072ff;
+        }
+
+        .votes-list {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .votes-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .votes-list::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        .votes-list::-webkit-scrollbar-thumb {
+            background: #0072ff;
+            border-radius: 3px;
+        }
+
+        .votes-list::-webkit-scrollbar-thumb:hover {
+            background: #00c6ff;
+        }
+
+        .votes-header {
+            background: #f8f9fa;
+            padding: 15px;
+            font-weight: 600;
+            border-bottom: 2px solid #0072ff;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .download-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+        }
+
+        .download-btn:hover {
+            background: #218838;
+            transform: translateY(-1px);
+        }
+
+        .live-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            color: #28a745;
+            margin-bottom: 20px;
+        }
+
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            background: #28a745;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .votes-count {
+            font-size: 0.9rem;
+            color: #666;
+            margin-left: auto;
+        }
+
+        .vote-item {
+            padding: clamp(12px, 3vw, 15px);
+            border-bottom: 1px solid #eee;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .vote-item:last-child {
+            border-bottom: none;
+        }
+
+        .vote-details {
+            flex: 1;
+        }
+
+        .vote-status {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: clamp(0.7rem, 2vw, 0.75rem);
+            font-weight: 600;
+            align-self: flex-start;
+        }
+
+        .status-new {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-edited {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 5px;
+            }
+            
+            .container {
+                margin: 5px;
+                padding: 20px;
+                max-width: none;
+                width: calc(100% - 10px);
+            }
+            
+            .products-grid {
+                grid-template-columns: repeat(auto-fit, minmax(min(150px, 100%), 1fr));
+                gap: 15px;
+            }
+
+            .admin-header h1 {
+                font-size: 1.5rem;
+                margin-bottom: 15px;
+            }
+
+            .admin-nav {
+                gap: 5px;
+            }
+
+            .nav-btn {
+                padding: 8px 12px;
+                font-size: 0.8rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 15px;
+                border-radius: 15px;
+            }
+            
+            .products-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .dashboard-stats {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .vote-item {
+                padding: 10px;
+            }
+
+            h1 {
+                margin-bottom: 20px;
+            }
+
+            .form-group {
+                margin-bottom: 15px;
+            }
+        }
+
+        @media (min-width: 1200px) {
+            .container {
+                max-width: 600px;
+            }
+        }
+
+        /* Ultra-wide screens */
+        @media (min-width: 1920px) {
+            .container {
+                max-width: 700px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Client View -->
+    <div id="clientView" class="container">
+        <h1 id="mainTitle">🗳️ Voting System</h1>
+        
+        <!-- Step 1: User Details -->
+        <div id="step1">
+            <div class="form-group">
+                <label for="userName">Your Name</label>
+                <input type="text" id="userName" placeholder="Enter your full name" required>
+            </div>
+            <div class="form-group">
+                <label for="cardNumber">Card Number</label>
+                <input type="number" id="cardNumber" placeholder="Enter your card number" required>
+            </div>
+            <button class="btn btn-primary" onclick="nextStep()">Next →</button>
+        </div>
+
+        <!-- Step 2: Product Selection -->
+        <div id="step2" class="hidden">
+            <h2>Select Your Choice</h2>
+            <div id="productsContainer" class="products-grid">
+                <!-- Products will be loaded here -->
+            </div>
+            <button class="btn btn-primary" onclick="submitVote()" id="submitBtn" disabled>Submit Vote</button>
+            <button class="btn btn-secondary" onclick="goBack()">← Back</button>
+        </div>
+
+        <!-- Success Message -->
+        <div id="successStep" class="hidden">
+            <div class="success-message">
+                <h3>✅ Vote Submitted Successfully!</h3>
+                <p>Thank you for voting. You can change your vote within 1 month.</p>
+            </div>
+            <button class="btn btn-primary" onclick="resetForm()">Vote Again</button>
+        </div>
+    </div>
+
+    <!-- Admin Login -->
+    <div id="adminLogin" class="container hidden">
+        <h1>🔐 Admin Login</h1>
+        <div class="form-group">
+            <label for="adminPassword">Password</label>
+            <input type="password" id="adminPassword" placeholder="Enter admin password">
+        </div>
+        <button class="btn btn-primary" onclick="adminLogin()">Login</button>
+        <button class="btn btn-secondary" onclick="showClientView()">← Back to Voting</button>
+    </div>
+
+    <!-- Admin Dashboard -->
+    <div id="adminDashboard" class="container hidden" style="max-width: 800px;">
+        <div class="admin-header">
+            <h1>📊 Admin Dashboard</h1>
+            <div class="admin-nav">
+                <button class="nav-btn active" onclick="showDashboard()">Dashboard</button>
+                <button class="nav-btn" onclick="showProducts()">Products</button>
+                <button class="nav-btn" onclick="logout()">Logout</button>
+            </div>
+        </div>
+
+        <!-- Dashboard View -->
+        <div id="dashboardView">
+            <div class="live-indicator">
+                <div class="live-dot"></div>
+                <span>Live Updates Active</span>
+            </div>
+            
+            <div class="dashboard-stats">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalVotes">0</div>
+                    <div>Total Votes</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="totalProducts">0</div>
+                    <div>Total Products</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="editedVotes">0</div>
+                    <div>Edited Votes</div>
+                </div>
+            </div>
+
+            <h3>All Votes</h3>
+            <div id="votesList" class="votes-list">
+                <div class="votes-header">
+                    <span>Vote Details</span>
+                    <span class="votes-count" id="votesCount">0 votes</span>
+                    <button class="download-btn" onclick="downloadVotesExcel()">📊 Download Excel</button>
+                </div>
+                <div id="votesContent">
+                    <!-- Votes will be displayed here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Products Management -->
+        <div id="productsView" class="hidden">
+            <h3>Add New Product</h3>
+            <div class="form-group">
+                <label for="productName">Product Name</label>
+                <input type="text" id="productName" placeholder="Enter product name">
+            </div>
+            <div class="form-group">
+                <label for="productImage">Product Image</label>
+                <input type="file" id="productImage" accept="image/*">
+            </div>
+            <button class="btn btn-primary" onclick="addProduct()">Add Product</button>
+
+            <h3 style="margin-top: 30px;">Existing Products</h3>
+            <div id="adminProductsList" class="products-grid">
+                <!-- Admin products will be displayed here -->
+            </div>
+        </div>
+    </div>
+
+    <audio id="backgroundAudio" preload="auto" loop>
+        <!-- Audio will be added here when card number is entered -->
+        <source src="audio.mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+        // Application State
+        let products = JSON.parse(localStorage.getItem('products')) || [];
+        let votes = JSON.parse(localStorage.getItem('votes')) || [];
+        let selectedProduct = null;
+        let currentUser = null;
+        let audioPlayed = false;
+        let tapCount = 0;
+        let tapTimer = null;
+        let liveUpdateInterval = null;
+        let isAdminActive = false;
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            loadProducts();
+            updateDashboard();
+            
+            // Hidden admin access - triple tap on title (mobile-friendly)
+            const title = document.getElementById('mainTitle');
+            
+            // Handle both click and touch events
+            title.addEventListener('click', handleAdminAccess);
+            title.addEventListener('touchend', handleAdminAccess);
+        });
+
+        function handleAdminAccess(e) {
+            e.preventDefault();
+            tapCount++;
+            
+            if (tapCount === 1) {
+                tapTimer = setTimeout(() => {
+                    tapCount = 0;
+                }, 1500); // Increased time for mobile
+            } else if (tapCount === 3) {
+                clearTimeout(tapTimer);
+                tapCount = 0;
+                showAdminLogin();
+            }
+        }
+
+        // Client Functions
+        function nextStep() {
+            const name = document.getElementById('userName').value.trim();
+            const cardNumber = document.getElementById('cardNumber').value.trim();
+
+            if (!name || !cardNumber) {
+                showMessage('Please fill in all fields', 'error');
+                return;
+            }
+
+            // Play audio when card number is entered
+            if (!audioPlayed) {
+                playAudio();
+                audioPlayed = true;
+            }
+
+            currentUser = { name, cardNumber };
+            
+            // Check if user already voted
+            const existingVote = votes.find(vote => vote.cardNumber === cardNumber);
+            if (existingVote) {
+                selectedProduct = existingVote.productId;
+            }
+
+            document.getElementById('step1').classList.add('hidden');
+            document.getElementById('step2').classList.remove('hidden');
+            loadProducts();
+        }
+
+        function goBack() {
+            document.getElementById('step2').classList.add('hidden');
+            document.getElementById('step1').classList.remove('hidden');
+            selectedProduct = null;
+        }
+
+        function loadProducts() {
+            const container = document.getElementById('productsContainer');
+            container.innerHTML = '';
+
+            products.forEach(product => {
+                const productCard = document.createElement('div');
+                productCard.className = `product-card ${selectedProduct === product.id ? 'selected' : ''}`;
+                productCard.onclick = () => selectProduct(product.id);
+                
+                productCard.innerHTML = `
+                    <img src="${product.image}" alt="${product.name}" class="product-image">
+                    <div class="product-name">${product.name}</div>
+                `;
+                
+                container.appendChild(productCard);
+            });
+        }
+
+        function selectProduct(productId) {
+            selectedProduct = productId;
+            document.querySelectorAll('.product-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            event.target.closest('.product-card').classList.add('selected');
+            document.getElementById('submitBtn').disabled = false;
+        }
+
+        function submitVote() {
+            if (!selectedProduct || !currentUser) {
+                showMessage('Please select a product', 'error');
+                return;
+            }
+
+            const existingVoteIndex = votes.findIndex(vote => vote.cardNumber === currentUser.cardNumber);
+            const voteData = {
+                name: currentUser.name,
+                cardNumber: currentUser.cardNumber,
+                productId: selectedProduct,
+                timestamp: new Date().toISOString(),
+                status: existingVoteIndex !== -1 ? 'edited' : 'new'
+            };
+
+            if (existingVoteIndex !== -1) {
+                votes[existingVoteIndex] = voteData;
+            } else {
+                votes.push(voteData);
+            }
+
+            localStorage.setItem('votes', JSON.stringify(votes));
+            
+            document.getElementById('step2').classList.add('hidden');
+            document.getElementById('successStep').classList.remove('hidden');
+            
+            // Update dashboard immediately if admin is active
+            if (isAdminActive) {
+                updateDashboard();
+            }
+        }
+
+        // Excel download functionality
+        function downloadVotesExcel() {
+            if (votes.length === 0) {
+                alert('No votes to download');
+                return;
+            }
+
+            // Prepare data for Excel
+            const excelData = votes.map(vote => {
+                const product = products.find(p => p.id === vote.productId);
+                return {
+                    'Name': vote.name,
+                    'Card Number': vote.cardNumber,
+                    'Voted For': product ? product.name : 'Unknown Product',
+                    'Status': vote.status === 'edited' ? 'Edited' : 'New',
+                    'Date & Time': new Date(vote.timestamp).toLocaleString()
+                };
+            });
+
+            // Convert to CSV format
+            const headers = ['Name', 'Card Number', 'Voted For', 'Status', 'Date & Time'];
+            const csvContent = [
+                headers.join(','),
+                ...excelData.map(row => 
+                    headers.map(header => {
+                        const value = row[header] || '';
+                        // Escape commas and quotes in CSV
+                        if (value.toString().includes(',') || value.toString().includes('"')) {
+                            return `"${value.toString().replace(/"/g, '""')}"`;
+                        }
+                        return value;
+                    }).join(',')
+                )
+            ].join('\n');
+
+            // Create and download file
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            
+            if (link.download !== undefined) {
+                const url = URL.createObjectURL(blob);
+                link.setAttribute('href', url);
+                link.setAttribute('download', `voting-results-${new Date().toISOString().split('T')[0]}.csv`);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                showMessage('Excel file downloaded successfully!', 'success', 'adminDashboard');
+            }
+        }
+
+        function resetForm() {
+            document.getElementById('successStep').classList.add('hidden');
+            document.getElementById('step1').classList.remove('hidden');
+            document.getElementById('userName').value = '';
+            document.getElementById('cardNumber').value = '';
+            selectedProduct = null;
+            currentUser = null;
+            audioPlayed = false;
+        }
+
+        // Admin Functions
+        function showAdminLogin() {
+            document.getElementById('clientView').classList.add('hidden');
+            document.getElementById('adminLogin').classList.remove('hidden');
+        }
+
+        function showClientView() {
+            document.getElementById('adminLogin').classList.add('hidden');
+            document.getElementById('clientView').classList.remove('hidden');
+        }
+
+        function adminLogin() {
+            const password = document.getElementById('adminPassword').value;
+            if (password === 'admin123') {
+                document.getElementById('adminLogin').classList.add('hidden');
+                document.getElementById('adminDashboard').classList.remove('hidden');
+                isAdminActive = true;
+                updateDashboard();
+                startLiveUpdates();
+            } else {
+                showMessage('Invalid password', 'error', 'adminLogin');
+            }
+        }
+
+        function logout() {
+            document.getElementById('adminDashboard').classList.add('hidden');
+            document.getElementById('clientView').classList.remove('hidden');
+            document.getElementById('adminPassword').value = '';
+            isAdminActive = false;
+            stopLiveUpdates();
+        }
+
+        function startLiveUpdates() {
+            if (liveUpdateInterval) {
+                clearInterval(liveUpdateInterval);
+            }
+            liveUpdateInterval = setInterval(() => {
+                if (isAdminActive) {
+                    // Reload data from localStorage in case another tab made changes
+                    votes = JSON.parse(localStorage.getItem('votes')) || [];
+                    products = JSON.parse(localStorage.getItem('products')) || [];
+                    updateDashboard();
+                }
+            }, 2000); // Update every 2 seconds
+        }
+
+        function stopLiveUpdates() {
+            if (liveUpdateInterval) {
+                clearInterval(liveUpdateInterval);
+                liveUpdateInterval = null;
+            }
+        }
+
+        function showDashboard() {
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById('dashboardView').classList.remove('hidden');
+            document.getElementById('productsView').classList.add('hidden');
+            updateDashboard();
+        }
+
+        function showProducts() {
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById('dashboardView').classList.add('hidden');
+            document.getElementById('productsView').classList.remove('hidden');
+            loadAdminProducts();
+        }
+
+        function updateDashboard() {
+            document.getElementById('totalVotes').textContent = votes.length;
+            document.getElementById('totalProducts').textContent = products.length;
+            document.getElementById('editedVotes').textContent = votes.filter(vote => vote.status === 'edited').length;
+
+            const votesContent = document.getElementById('votesContent');
+            const votesCount = document.getElementById('votesCount');
+            
+            if (votesContent && votesCount) {
+                votesContent.innerHTML = '';
+                votesCount.textContent = `${votes.length} votes`;
+
+                // Display all votes (most recent first)
+                votes.slice().reverse().forEach(vote => {
+                    const product = products.find(p => p.id === vote.productId);
+                    const voteItem = document.createElement('div');
+                    voteItem.className = 'vote-item';
+                    voteItem.innerHTML = `
+                        <div class="vote-details">
+                            <strong>${vote.name}</strong> (Card: ${vote.cardNumber})<br>
+                            <small>Voted for: ${product ? product.name : 'Unknown Product'}</small><br>
+                            <small style="color: #888;">Date: ${new Date(vote.timestamp).toLocaleString()}</small>
+                        </div>
+                        <span class="vote-status ${vote.status === 'edited' ? 'status-edited' : 'status-new'}">
+                            ${vote.status === 'edited' ? 'Edited' : 'New'}
+                        </span>
+                    `;
+                    votesContent.appendChild(voteItem);
+                });
+
+                if (votes.length === 0) {
+                    votesContent.innerHTML = '<div style="padding: 20px; text-align: center; color: #888;">No votes yet</div>';
+                }
+            }
+        }
+
+        function addProduct() {
+            const name = document.getElementById('productName').value.trim();
+            const imageFile = document.getElementById('productImage').files[0];
+
+            if (!name || !imageFile) {
+                showMessage('Please fill in all fields', 'error', 'adminDashboard');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const product = {
+                    id: Date.now(),
+                    name: name,
+                    image: e.target.result
+                };
+
+                products.push(product);
+                localStorage.setItem('products', JSON.stringify(products));
+                
+                document.getElementById('productName').value = '';
+                document.getElementById('productImage').value = '';
+                
+                showMessage('Product added successfully!', 'success', 'adminDashboard');
+                loadAdminProducts();
+                updateDashboard();
+            };
+            reader.readAsDataURL(imageFile);
+        }
+
+        function loadAdminProducts() {
+            const container = document.getElementById('adminProductsList');
+            container.innerHTML = '';
+
+            products.forEach(product => {
+                const productCard = document.createElement('div');
+                productCard.className = 'product-card';
+                productCard.innerHTML = `
+                    <img src="${product.image}" alt="${product.name}" class="product-image">
+                    <div class="product-name">${product.name}</div>
+                    <button class="btn btn-secondary" onclick="deleteProduct(${product.id})" style="margin-top: 10px; width: auto; padding: 8px 16px;">Delete</button>
+                `;
+                container.appendChild(productCard);
+            });
+        }
+
+        function deleteProduct(productId) {
+            if (confirm('Are you sure you want to delete this product?')) {
+                products = products.filter(product => product.id !== productId);
+                localStorage.setItem('products', JSON.stringify(products));
+                loadAdminProducts();
+                updateDashboard();
+                showMessage('Product deleted successfully!', 'success', 'adminDashboard');
+            }
+        }
+
+        // Utility Functions
+        function playAudio() {
+            const audio = document.getElementById('backgroundAudio');
+            audio.play().catch(error => {
+                console.log('Audio autoplay failed:', error);
+            });
+        }
+
+        function showMessage(message, type, containerId = 'clientView') {
+            const container = document.getElementById(containerId);
+            const existingMessage = container.querySelector('.success-message, .error-message');
+            if (existingMessage) {
+                existingMessage.remove();
+            }
+
+            const messageDiv = document.createElement('div');
+            messageDiv.className = type === 'success' ? 'success-message' : 'error-message';
+            messageDiv.textContent = message;
+            
+            container.insertBefore(messageDiv, container.firstChild);
+            
+            setTimeout(() => {
+                messageDiv.remove();
+            }, 5000);
+        }
+
+        // Check vote eligibility (1 month limit)
+        function canChangeVote(timestamp) {
+            const voteDate = new Date(timestamp);
+            const currentDate = new Date();
+            const diffTime = Math.abs(currentDate - voteDate);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            return diffDays <= 30;
+        }
+    </script>
+</body>
+</html>
