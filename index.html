@@ -730,7 +730,87 @@
         <source src="audio.mp3" type="audio/mpeg">
     </audio>
 
-    <script>
+    <script type="module">
+        // Firebase SDK (v9+ modular) setup
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+        import { getDatabase, ref as dbRef, onValue, set, update } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
+        import { getStorage, ref as storageRef, uploadBytes, getDownloadURL, deleteObject } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js';
+
+        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+        const firebaseConfig = {
+            apiKey: "AIzaSyAZibAUY2k7pUocptDTyZ9tWYNG8829_4U",
+            authDomain: "top10-9fa95.firebaseapp.com",
+            databaseURL: "https://top10-9fa95-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "top10-9fa95",
+            storageBucket: "top10-9fa95.appspot.com",
+            messagingSenderId: "12006609861",
+            appId: "1:12006609861:web:a8318a4b9ca8fe9a1fb1ac",
+            measurementId: "G-7Y3Y838060"
+        };
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const storage = getStorage(app);
+
+        // Sync helpers
+        let isSyncing = false;
+        const originalSetItem = localStorage.setItem.bind(localStorage);
+        localStorage.setItem = (key, value) => {
+            if (!isSyncing) {
+                try {
+                    const parsed = JSON.parse(value);
+                    if (key === 'products') syncProductsToFirebase(parsed);
+                    if (key === 'votes') syncVotesToFirebase(parsed);
+                } catch (e) { /* ignore non-JSON */ }
+            }
+            return originalSetItem(key, value);
+        };
+
+        function arrayToObjectByKey(array, keySelector) {
+            const result = {};
+            array.forEach(item => {
+                const key = keySelector(item);
+                if (key != null) result[key] = item;
+            });
+            return result;
+        }
+
+        function syncProductsToFirebase(productsArray) {
+            const productsObj = arrayToObjectByKey(productsArray, p => p.id);
+            set(dbRef(db, 'products'), productsObj);
+        }
+
+        function syncVotesToFirebase(votesArray) {
+            const votesObj = arrayToObjectByKey(votesArray, v => v.cardNumber);
+            set(dbRef(db, 'votes'), votesObj);
+        }
+
+        // Live listeners to keep UI state synced across devices
+        onValue(dbRef(db, 'products'), snapshot => {
+            const val = snapshot.val() || {};
+            const nextProducts = Object.values(val);
+            products = nextProducts;
+            isSyncing = true;
+            originalSetItem('products', JSON.stringify(products));
+            isSyncing = false;
+            // Refresh UI
+            loadProducts();
+            const adminVisible = !document.getElementById('adminDashboard').classList.contains('hidden');
+            if (adminVisible) {
+                loadAdminProducts();
+                updateDashboard();
+            }
+        });
+
+        onValue(dbRef(db, 'votes'), snapshot => {
+            const val = snapshot.val() || {};
+            const nextVotes = Object.values(val);
+            votes = nextVotes;
+            isSyncing = true;
+            originalSetItem('votes', JSON.stringify(votes));
+            isSyncing = false;
+            const adminVisible = !document.getElementById('adminDashboard').classList.contains('hidden');
+            if (adminVisible) updateDashboard();
+        });
         // Application State
         let products = JSON.parse(localStorage.getItem('products')) || [];
         let votes = JSON.parse(localStorage.getItem('votes')) || [];
@@ -1045,25 +1125,29 @@
                 return;
             }
 
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const product = {
-                    id: Date.now(),
-                    name: name,
-                    image: e.target.result
-                };
+            const id = Date.now();
+            const path = `products/${id}-${imageFile.name}`;
+            const fileRef = storageRef(storage, path);
 
-                products.push(product);
-                localStorage.setItem('products', JSON.stringify(products));
-                
-                document.getElementById('productName').value = '';
-                document.getElementById('productImage').value = '';
-                
-                showMessage('Product added successfully!', 'success', 'adminDashboard');
-                loadAdminProducts();
-                updateDashboard();
-            };
-            reader.readAsDataURL(imageFile);
+            uploadBytes(fileRef, imageFile)
+                .then(() => getDownloadURL(fileRef))
+                .then(url => {
+                    const product = { id, name, image: url, storagePath: path };
+                    // Update local state and trigger sync via localStorage monkeypatch
+                    products.push(product);
+                    localStorage.setItem('products', JSON.stringify(products));
+
+                    document.getElementById('productName').value = '';
+                    document.getElementById('productImage').value = '';
+
+                    showMessage('Product added successfully!', 'success', 'adminDashboard');
+                    loadAdminProducts();
+                    updateDashboard();
+                })
+                .catch(err => {
+                    console.error(err);
+                    showMessage('Failed to upload image', 'error', 'adminDashboard');
+                });
         }
 
         function loadAdminProducts() {
@@ -1083,12 +1167,23 @@
         }
 
         function deleteProduct(productId) {
-            if (confirm('Are you sure you want to delete this product?')) {
-                products = products.filter(product => product.id !== productId);
+            if (!confirm('Are you sure you want to delete this product?')) return;
+
+            const product = products.find(p => p.id === productId);
+            const afterDelete = () => {
+                products = products.filter(p => p.id !== productId);
                 localStorage.setItem('products', JSON.stringify(products));
                 loadAdminProducts();
                 updateDashboard();
                 showMessage('Product deleted successfully!', 'success', 'adminDashboard');
+            };
+
+            if (product && product.storagePath) {
+                deleteObject(storageRef(storage, product.storagePath))
+                    .then(afterDelete)
+                    .catch(() => afterDelete());
+            } else {
+                afterDelete();
             }
         }
 
@@ -1126,6 +1221,23 @@
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
             return diffDays <= 30;
         }
+        
+        // Expose functions for inline onclick handlers (module scope fix)
+        Object.assign(window, {
+            nextStep,
+            submitVote,
+            goBack,
+            adminLogin,
+            logout,
+            showDashboard,
+            showProducts,
+            addProduct,
+            deleteProduct,
+            resetForm,
+            downloadVotesExcel,
+            showClientView,
+            showAdminLogin
+        });
     </script>
 </body>
 </html>
