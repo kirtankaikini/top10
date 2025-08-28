@@ -750,6 +750,21 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
         const storage = getStorage(app);
+        // Expose Firebase handles globally for safety (used by UI handlers)
+        Object.assign(window, { firebaseApp: app, firebaseDb: db, firebaseStorage: storage });
+
+        // Application State (declare BEFORE listeners to avoid temporal-dead-zone issues)
+        let products = JSON.parse(localStorage.getItem('products')) || [];
+        let votes = JSON.parse(localStorage.getItem('votes')) || [];
+        let selectedProduct = null;
+        let currentUser = null;
+        let audioPlayed = false;
+        let tapCount = 0;
+        let tapTimer = null;
+        let liveUpdateInterval = null;
+        let isAdminActive = false;
+        let currentModalAction = null;
+        let currentVoteToDelete = null;
 
         // Sync helpers
         let isSyncing = false;
@@ -776,7 +791,9 @@
 
         function syncProductsToFirebase(productsArray) {
             const productsObj = arrayToObjectByKey(productsArray, p => p.id);
-            set(dbRef(db, 'products'), productsObj);
+            return set(dbRef(db, 'products'), productsObj).catch(err => {
+                console.error('Failed to sync products to Firebase:', err);
+            });
         }
 
         function syncVotesToFirebase(votesArray) {
@@ -786,9 +803,26 @@
 
         // Live listeners to keep UI state synced across devices
         onValue(dbRef(db, 'products'), snapshot => {
-            const val = snapshot.val() || {};
-            const nextProducts = Object.values(val);
-            products = nextProducts;
+            const val = snapshot.val();
+            if (!val) {
+                // If remote is empty but local has items, push local up and keep UI
+                if (products && products.length > 0) {
+                    syncProductsToFirebase(products);
+                    return;
+                }
+                products = [];
+            } else {
+                const next = Object.values(val);
+                // Avoid resetting if data is effectively the same length and same last id
+                if (Array.isArray(products) && products.length === next.length) {
+                    const lastLocal = products[products.length - 1]?.id;
+                    const lastRemote = next[next.length - 1]?.id;
+                    if (lastLocal === lastRemote) {
+                        return; // No meaningful change
+                    }
+                }
+                products = next;
+            }
             isSyncing = true;
             originalSetItem('products', JSON.stringify(products));
             isSyncing = false;
@@ -811,18 +845,7 @@
             const adminVisible = !document.getElementById('adminDashboard').classList.contains('hidden');
             if (adminVisible) updateDashboard();
         });
-        // Application State
-        let products = JSON.parse(localStorage.getItem('products')) || [];
-        let votes = JSON.parse(localStorage.getItem('votes')) || [];
-        let selectedProduct = null;
-        let currentUser = null;
-        let audioPlayed = false;
-        let tapCount = 0;
-        let tapTimer = null;
-        let liveUpdateInterval = null;
-        let isAdminActive = false;
-        let currentModalAction = null;
-        let currentVoteToDelete = null;
+        
 
         // Initialize app
         document.addEventListener('DOMContentLoaded', function() {
@@ -1116,38 +1139,89 @@
             }
         }
 
-        function addProduct() {
+        async function addProduct() {
             const name = document.getElementById('productName').value.trim();
             const imageFile = document.getElementById('productImage').files[0];
 
-            if (!name || !imageFile) {
-                showMessage('Please fill in all fields', 'error', 'adminDashboard');
+            if (!name) {
+                showMessage('Please enter product name', 'error', 'adminDashboard');
                 return;
+            }
+
+            // Validate file if provided
+            if (imageFile) {
+                const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+                const maxSizeBytes = 7 * 1024 * 1024; // 7MB
+                if (!allowedTypes.includes(imageFile.type)) {
+                    showMessage('Please upload an image (jpg, png, webp, gif)', 'error', 'adminDashboard');
+                    return;
+                }
+                if (imageFile.size > maxSizeBytes) {
+                    showMessage('Image too large (max 7MB)', 'error', 'adminDashboard');
+                    return;
+                }
             }
 
             const id = Date.now();
             const path = `products/${id}-${imageFile.name}`;
             const fileRef = storageRef(storage, path);
 
-            uploadBytes(fileRef, imageFile)
-                .then(() => getDownloadURL(fileRef))
-                .then(url => {
-                    const product = { id, name, image: url, storagePath: path };
-                    // Update local state and trigger sync via localStorage monkeypatch
+            // If no image provided, use a simple placeholder
+            const placeholder = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300"><rect width="100%" height="100%" fill="%23e9ecef"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="Segoe UI, Arial" font-size="20" fill="%23666">No Image</text></svg>';
+
+            // If there is no image selected, add product immediately with placeholder
+            if (!imageFile) {
+                const product = { id, name, image: placeholder };
+                products.push(product);
+                localStorage.setItem('products', JSON.stringify(products));
+                document.getElementById('productName').value = '';
+                document.getElementById('productImage').value = '';
+                showMessage('Product added with placeholder image.', 'success', 'adminDashboard');
+                loadAdminProducts();
+                updateDashboard();
+                loadProducts();
+                return;
+            }
+
+            try {
+                await uploadBytes(fileRef, imageFile);
+                const url = await getDownloadURL(fileRef);
+                const product = { id, name, image: url, storagePath: path };
+                products.push(product);
+                localStorage.setItem('products', JSON.stringify(products));
+
+                document.getElementById('productName').value = '';
+                document.getElementById('productImage').value = '';
+
+                showMessage('Product added successfully!', 'success', 'adminDashboard');
+                try { loadAdminProducts(); } catch {}
+                try { updateDashboard(); } catch {}
+                try { loadProducts(); } catch {}
+            } catch (err) {
+                console.warn('Storage upload failed, using local image fallback.', err);
+                try {
+                    const dataUrl = await new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onload = e => resolve(e.target.result);
+                        reader.onerror = reject;
+                        reader.readAsDataURL(imageFile);
+                    });
+                    const product = { id, name, image: dataUrl };
                     products.push(product);
                     localStorage.setItem('products', JSON.stringify(products));
 
                     document.getElementById('productName').value = '';
                     document.getElementById('productImage').value = '';
 
-                    showMessage('Product added successfully!', 'success', 'adminDashboard');
-                    loadAdminProducts();
-                    updateDashboard();
-                })
-                .catch(err => {
-                    console.error(err);
-                    showMessage('Failed to upload image', 'error', 'adminDashboard');
-                });
+                    showMessage('Product added (local image fallback).', 'success', 'adminDashboard');
+                    try { loadAdminProducts(); } catch {}
+                    try { updateDashboard(); } catch {}
+                    try { loadProducts(); } catch {}
+                } catch (readErr) {
+                    console.error('Failed to add product via fallback:', readErr);
+                    showMessage('Failed to add product. Please try a different image.', 'error', 'adminDashboard');
+                }
+            }
         }
 
         function loadAdminProducts() {
@@ -1184,6 +1258,65 @@
                     .catch(() => afterDelete());
             } else {
                 afterDelete();
+            }
+        }
+
+        // Modal helpers for admin-confirmed actions
+        function openModal() {
+            document.getElementById('passwordModal').style.display = 'block';
+            document.getElementById('modalPassword').value = '';
+        }
+
+        function closeModal() {
+            document.getElementById('passwordModal').style.display = 'none';
+            document.getElementById('modalPassword').value = '';
+            currentModalAction = null;
+            currentVoteToDelete = null;
+        }
+
+        function showResetModal() {
+            document.getElementById('modalTitle').textContent = 'Reset All Votes';
+            document.getElementById('modalMessage').textContent = 'Please enter admin password to reset all votes:';
+            currentModalAction = 'resetVotes';
+            const confirmBtn = document.getElementById('modalConfirm');
+            confirmBtn.onclick = confirmModalAction;
+            openModal();
+        }
+
+        function showDeleteVoteModal(cardNumber) {
+            document.getElementById('modalTitle').textContent = 'Delete Vote';
+            document.getElementById('modalMessage').textContent = `Enter admin password to delete vote for Card: ${cardNumber}`;
+            currentModalAction = 'deleteVote';
+            currentVoteToDelete = cardNumber;
+            const confirmBtn = document.getElementById('modalConfirm');
+            confirmBtn.onclick = confirmModalAction;
+            openModal();
+        }
+
+        function confirmModalAction() {
+            const password = document.getElementById('modalPassword').value;
+            const ADMIN_PASSWORD = 'Kirtan01@Kaikini';
+            if (password !== ADMIN_PASSWORD) {
+                showMessage('Invalid password', 'error', 'adminDashboard');
+                return;
+            }
+
+            if (currentModalAction === 'resetVotes') {
+                votes = [];
+                localStorage.setItem('votes', JSON.stringify(votes));
+                set(dbRef(db, 'votes'), {});
+                updateDashboard();
+                closeModal();
+                showMessage('All votes have been reset.', 'success', 'adminDashboard');
+            } else if (currentModalAction === 'deleteVote' && currentVoteToDelete) {
+                votes = votes.filter(v => v.cardNumber !== currentVoteToDelete);
+                localStorage.setItem('votes', JSON.stringify(votes));
+                // push full map to DB
+                const votesObj = votes.reduce((acc, v) => { acc[v.cardNumber] = v; return acc; }, {});
+                set(dbRef(db, 'votes'), votesObj);
+                updateDashboard();
+                closeModal();
+                showMessage('Vote deleted.', 'success', 'adminDashboard');
             }
         }
 
@@ -1233,6 +1366,9 @@
             showProducts,
             addProduct,
             deleteProduct,
+            showResetModal,
+            showDeleteVoteModal,
+            closeModal,
             resetForm,
             downloadVotesExcel,
             showClientView,
