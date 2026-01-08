@@ -9,8 +9,9 @@
         :root {
             --primary: #6366f1;
             --accent: #a855f7;
-            --card-glass: rgba(255, 255, 255, 0.92);
-            --text-dark: #0f172a;
+            --glass: rgba(255, 255, 255, 0.85);
+            --text-main: #1e293b;
+            --danger: #d0021b; /* Brighter, more urgent red */
         }
 
         * {
@@ -20,17 +21,17 @@
 
         body {
             margin: 0;
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            color: var(--text-dark);
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            color: var(--text-main);
             min-height: 100vh;
-            /* Animated Mesh Gradient Background */
-            background: linear-gradient(-45deg, #f3f4f6, #e0e7ff, #ede9fe, #fae8ff);
+            background: linear-gradient(-45deg, #f8fafc, #e0e7ff, #f5f3ff, #fdf4ff);
             background-size: 400% 400%;
-            animation: gradientBG 12s ease infinite;
-            overflow-x: hidden;
+            animation: meshGradient 15s ease infinite;
+            display: flex;
+            flex-direction: column;
         }
 
-        @keyframes gradientBG {
+        @keyframes meshGradient {
             0% { background-position: 0% 50%; }
             50% { background-position: 100% 50%; }
             100% { background-position: 0% 50%; }
@@ -40,215 +41,271 @@
             position: sticky;
             top: 0;
             z-index: 100;
-            padding: 15px;
+            padding: 16px;
             text-align: center;
             background: rgba(255, 255, 255, 0.7);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+            border-bottom: 2px solid rgba(255, 255, 255, 0.5);
         }
 
         header h1 {
             margin: 0;
-            font-size: 1.5rem;
-            font-weight: 800;
-            letter-spacing: 2px;
+            font-size: 1.6rem;
+            font-weight: 900;
+            letter-spacing: 1px;
             background: linear-gradient(to right, var(--primary), var(--accent));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
-        /* Responsive Grid System */
         .container {
+            flex: 1;
             display: grid;
-            grid-template-columns: repeat(2, 1fr); /* 2 cols on mobile */
-            gap: 12px;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 14px;
             padding: 16px;
-            max-width: 1100px;
+            max-width: 1200px;
             margin: 0 auto;
         }
 
-        @media (min-width: 650px) { .container { grid-template-columns: repeat(3, 1fr); } }
-        @media (min-width: 950px) { .container { grid-template-columns: repeat(4, 1fr); } }
+        @media (min-width: 768px) { .container { grid-template-columns: repeat(3, 1fr); } }
 
-        .product-card {
-            background: var(--card-glass);
+        .card {
+            background: var(--glass);
             border-radius: 24px;
             padding: 10px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.04);
-            border: 1px solid white;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
             cursor: pointer;
         }
 
-        .product-card:active {
-            transform: scale(0.95);
-        }
+        .card:active { transform: scale(0.96); }
 
-        .product-card img {
+        .card img {
             width: 100%;
             aspect-ratio: 1/1;
             object-fit: cover;
             border-radius: 18px;
-            display: block;
-            background: #eee;
+            background: #f1f5f9;
         }
 
-        .product-name {
-            padding: 12px 5px;
+        .card-title {
+            padding: 12px 6px;
             text-align: center;
+            font-size: 0.85rem;
+            font-weight: 700;
+            line-height: 1.4;
+            color: #334155;
+            flex-grow: 1;
+        }
+
+        /* Red Extra Charge Style */
+        .extra-charge {
+            color: var(--danger);
+            display: block;
+            margin-top: 6px;
+            font-weight: 900;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            border-top: 1px solid rgba(208, 2, 27, 0.1);
+            padding-top: 4px;
+        }
+
+        /* REFINED CLEAR FOOTER */
+        footer {
+            padding: 30px 20px 50px 20px;
+            margin-top: 20px;
+        }
+
+        .footer-notice-box {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #fff;
+            border: 2px solid var(--danger); /* Red border to catch attention */
+            border-radius: 20px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(208, 2, 27, 0.1);
+        }
+
+        .footer-notice-box h3 {
+            margin: 0 0 10px 0;
+            color: var(--danger);
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .footer-notice-box p {
+            margin: 0;
             font-size: 0.9rem;
             font-weight: 600;
-            line-height: 1.3;
-            color: #334155;
+            color: #1e293b;
+            line-height: 1.5;
         }
 
         /* Detail/Share View */
         #detail-view {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: white;
+            background: #ffffff;
             z-index: 1000;
             display: none;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-
         #share-area {
-            background: white;
-            padding: 30px;
+            background: #ffffff;
+            padding: 24px;
             width: 90%;
             max-width: 380px;
             border-radius: 32px;
             text-align: center;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.1);
         }
 
         #share-area img {
             width: 100%;
             border-radius: 20px;
             margin-bottom: 20px;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
         }
 
         #share-area h2 {
             margin: 10px 0;
             font-size: 1.4rem;
             font-weight: 800;
-            color: var(--text-dark);
+            color: #0f172a;
         }
 
-        .controls {
-            margin-top: 40px;
-            display: flex;
-            gap: 15px;
-            width: 90%;
-            max-width: 380px;
+        .actions {
+            margin-top: 30px;
+            display: flex; gap: 12px; width: 90%; max-width: 380px;
         }
 
         .btn {
-            flex: 1;
-            padding: 18px;
-            border: none;
-            border-radius: 20px;
-            font-size: 1rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: 0.2s;
+            flex: 1; padding: 18px; border: none; border-radius: 20px;
+            font-size: 1rem; font-weight: 700; cursor: pointer;
         }
 
-        .btn-back { background: #f1f5f9; color: #475569; }
-        .btn-share { background: #000; color: #fff; }
+        .btn-back { background: #f1f5f9; color: #64748b; }
+        .btn-share { background: #000000; color: #ffffff; }
 
-        #loading {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255,255,255,0.9);
-            z-index: 2000;
-            justify-content: center;
-            align-items: center;
-            font-weight: bold;
+        #loader {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255,255,255,0.95); z-index: 2000; flex-direction: column;
+            justify-content: center; align-items: center; font-weight: 800; color: var(--primary);
         }
     </style>
 </head>
 <body>
 
-<div id="loading">Generating Share Image...</div>
+<div id="loader">Creating Image...</div>
 
-<header><h1>TOP 10</h1></header>
+<header>
+    <h1>TOP 10</h1>
+</header>
 
 <div class="container" id="grid"></div>
+
+<footer>
+    <div class="footer-notice-box">
+        <h3>⚠️ IMPORTANT NOTICE</h3>
+        <p>
+            The Installation Fees for <b>Air Conditioners (A/C)</b>, <b>Solar Water Heaters</b>, and <b>Water Filters</b> are <u>NOT</u> included in the product price. These are extra charges and must be paid by the customer.
+        </p>
+    </div>
+</footer>
 
 <div id="detail-view">
     <div id="share-area">
         <img id="det-img" src="" alt="Product">
         <h2 id="det-title"></h2>
-        <p style="color: #6366f1; font-weight: 600; font-size: 0.8rem; margin: 15px 0 0 0; text-transform: uppercase;">Via Top 10</p>
+        <div style="background: #f8fafc; padding: 8px; border-radius: 10px; margin-top: 15px; font-size: 0.7rem; font-weight: 800; color: #64748b; letter-spacing: 1px;">Via Top 10</div>
     </div>
     
-    <div class="controls">
+    <div class="actions">
         <button class="btn btn-back" onclick="closeView()">Back</button>
-        <button class="btn btn-share" onclick="shareNow()">Share</button>
+        <button class="btn btn-share" onclick="handleShare()">Share</button>
     </div>
 </div>
 
 <script>
     const PROXY = "https://images.weserv.nl/?url=";
-    const names = [
-        "Glass Top 4 Burner Stove, Stainless Steel Thermos Flask, Hot Box, 750 W Mixture, Smart Fan",
-        "Gas Geyser, 32\" 4K LED TV, Medium-Size China Pot, Iron Box",
-        "40\" 4K LED TV, UV Water Filter",
-        "RO Filter (Hot, Cold, Normal)",
-        "3-Seater Garden Jhula, UV Water Filter",
-        "Sofa Cum Bed",
-        "12 Plastic Chairs, 3 Stainless Steel Tables, UV Filter",
-        "Dressing Table, Almirah 3 ft × 6.5 ft, Microwave Oven",
-        "Dining Table Set",
-        "Cot And Bed",
-        "Corner Sofa Set",
-        "Inverter",
-        "Mobile",
-        "Computer",
-        "Diamond Earring",
-        "Gold Ring",
-        "Diamond Ring",
-        "Gold Earring",
-        "Top load washing machine",
-        "Almari & Cot",
-        "Gold Neck Chain",
-        "Gold Pendent",
-        "Diamond Pendent",
-        "A/C (Air Conditioner) 1 Ton",
-        "Solar Water Heater 150L"
+    const products = [
+        { name: "Glass Top 4 Burner Stove, Stainless Steel Thermos Flask, Hot Box, 750 W Mixture, Smart Fan" },
+        { name: "Gas Geyser, 32\" 4K LED TV, Medium-Size China Pot, Iron Box" },
+        { name: "40\" 4K LED TV, UV Water Filter" },
+        { name: "RO Filter (Hot, Cold, Normal)" },
+        { name: "3-Seater Garden Jhula, UV Water Filter" },
+        { name: "Sofa Cum Bed" },
+        { name: "12 Plastic Chairs, 3 Stainless Steel Tables, UV Filter" },
+        { name: "Dressing Table, Almirah 3 ft × 6.5 ft, Microwave Oven" },
+        { name: "Dining Table Set" },
+        { name: "Cot And Bed" },
+        { name: "Corner Sofa Set" },
+        { name: "Inverter" },
+        { name: "Mobile" },
+        { name: "Computer" },
+        { name: "Diamond Earring" },
+        { name: "Gold Ring" },
+        { name: "Diamond Ring" },
+        { name: "Gold Earring" },
+        { name: "Top load washing machine" },
+        { name: "Almari & Cot" },
+        { name: "Gold Neck Chain" },
+        { name: "Gold Pendent" },
+        { name: "Diamond Pendent" },
+        { name: "Air Conditioner 1 ton", extra: "Pay ₹7000 Extra" },
+        { name: "Solar Water Heater 150L", extra: "Pay ₹4000 Extra" }
     ];
 
     const grid = document.getElementById('grid');
     const detailView = document.getElementById('detail-view');
 
     function init() {
-        names.forEach((name, i) => {
-            const rawUrl = `selectioncentre.in/wp-content/uploads/2026/01/${i+1}.png`;
+        products.forEach((p, i) => {
+            const num = i + 1;
+            const ext = [16, 18, 22, 25].includes(num) ? 'jpg' : 'png';
+            const rawUrl = `selectioncentre.in/wp-content/uploads/2026/01/${num}.${ext}`;
             const proxiedUrl = PROXY + rawUrl;
             
             const card = document.createElement('div');
-            card.className = 'product-card';
+            card.className = 'card';
+            
+            let nameHTML = `<span>${p.name}</span>`;
+            if (p.extra) {
+                nameHTML += `<span class="extra-charge">${p.extra}</span>`;
+            }
+
             card.innerHTML = `
                 <img src="${proxiedUrl}" alt="Product">
-                <div class="product-name">${name}</div>
+                <div class="card-title">${nameHTML}</div>
             `;
-            card.onclick = () => openView(proxiedUrl, name);
+            
+            const shareTitle = p.extra ? `${p.name} (${p.extra})` : p.name;
+            card.onclick = () => openView(proxiedUrl, shareTitle, p.extra);
             grid.appendChild(card);
         });
     }
 
-    function openView(img, title) {
+    function openView(img, title, extra) {
         document.getElementById('det-img').src = img;
-        document.getElementById('det-title').innerText = title;
+        
+        if(extra) {
+            const base = title.split(' (')[0];
+            document.getElementById('det-title').innerHTML = `${base}<br><span style="color:var(--danger); font-size: 1.1rem;">${extra}</span>`;
+        } else {
+            document.getElementById('det-title').innerText = title;
+        }
+        
         detailView.style.display = 'flex';
         document.body.style.overflow = 'hidden';
     }
@@ -258,10 +315,10 @@
         document.body.style.overflow = 'auto';
     }
 
-    async function shareNow() {
-        document.getElementById('loading').style.display = 'flex';
+    async function handleShare() {
+        document.getElementById('loader').style.display = 'flex';
         const area = document.getElementById('share-area');
-        const title = document.getElementById('det-title').innerText;
+        const titleText = document.getElementById('det-title').innerText;
 
         try {
             const canvas = await html2canvas(area, {
@@ -271,30 +328,28 @@
             });
 
             canvas.toBlob(async (blob) => {
-                const file = new File([blob], 'share.png', { type: 'image/png' });
+                const file = new File([blob], 'product.png', { type: 'image/png' });
                 if (navigator.canShare && navigator.canShare({ files: [file] })) {
                     await navigator.share({
                         files: [file],
-                        title: title,
-                        text: title
+                        title: 'TOP 10',
+                        text: titleText
                     });
                 } else {
-                    // Fallback to manual download for non-supported browsers
                     const link = document.createElement('a');
-                    link.download = `${title.substring(0, 10)}.png`;
+                    link.download = `TOP10_Product.png`;
                     link.href = URL.createObjectURL(blob);
                     link.click();
                 }
-                document.getElementById('loading').style.display = 'none';
+                document.getElementById('loader').style.display = 'none';
             }, 'image/png');
         } catch (err) {
-            alert("Sharing failed. Please try again.");
-            document.getElementById('loading').style.display = 'none';
+            alert("Error creating share image.");
+            document.getElementById('loader').style.display = 'none';
         }
     }
 
     init();
 </script>
-
 </body>
 </html>
