@@ -245,20 +245,20 @@
         { name: "Sofa Cum Bed" },
         { name: "12 Plastic Chairs, 3 Stainless Steel Tables, UV Filter" },
         { name: "Dressing Table, Almirah 3 ft × 6.5 ft, Microwave Oven" },
-        { name: "Dining Table Set" },
+        { name: "Dining Table Set", imgNum: 9 },
         { name: "Cot And Bed" },
         { name: "Corner Sofa Set" },
         { name: "Inverter" },
         { name: "Mobile" },
         { name: "Computer" },
         { name: "Diamond Earring" },
-        { name: "Gold Ring" },
+        { name: "Gold Ring", imgNum: 16 },
         { name: "Diamond Ring" },
-        { name: "Gold Earring" },
+        { name: "Gold Earring", imgNum: 18 },
         { name: "Top load washing machine" },
         { name: "Almari & Cot" },
         { name: "Gold Neck Chain" },
-        { name: "Gold Pendent" },
+        { name: "Gold Pendent", imgNum: 22 },
         { name: "Diamond Pendent" },
         { name: "Air Conditioner 1 ton", extra: "Pay ₹7000 Extra", imgNum: 24 },
         { name: "Solar Water Heater 150L", extra: "Pay ₹2500 Extra", imgNum: 25 },
@@ -271,7 +271,8 @@
     function init() {
         products.forEach((p, i) => {
             const num = p.imgNum || (i + 1);
-            const ext = [16, 18, 22, 25].includes(num) ? 'jpg' : 'png';
+            // Added 9 to the JPG list
+            const ext = [9, 16, 18, 22, 25].includes(num) ? 'jpg' : 'png';
             const rawUrl = `selectioncentre.in/wp-content/uploads/2026/01/${num}.${ext}`;
             const proxiedUrl = PROXY + rawUrl;
             
