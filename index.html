@@ -245,7 +245,7 @@
         { name: "Sofa Cum Bed" },
         { name: "12 Plastic Chairs, 3 Stainless Steel Tables, UV Filter" },
         { name: "Dressing Table, Almirah 3 ft × 6.5 ft, Microwave Oven" },
-        { name: "Dining Table Set", imgNum: 9 },
+        { name: "Dining Table Set", customUrl: "selectioncentre.in/wp-content/uploads/2026/01/9-e1767870221233.jpg" },
         { name: "Cot And Bed" },
         { name: "Corner Sofa Set" },
         { name: "Inverter" },
@@ -270,11 +270,15 @@
 
     function init() {
         products.forEach((p, i) => {
-            const num = p.imgNum || (i + 1);
-            // Added 9 to the JPG list
-            const ext = [9, 16, 18, 22, 25].includes(num) ? 'jpg' : 'png';
-            const rawUrl = `selectioncentre.in/wp-content/uploads/2026/01/${num}.${ext}`;
-            const proxiedUrl = PROXY + rawUrl;
+            let finalUrl;
+            
+            if (p.customUrl) {
+                finalUrl = PROXY + p.customUrl;
+            } else {
+                const num = p.imgNum || (i + 1);
+                const ext = [16, 18, 22, 25].includes(num) ? 'jpg' : 'png';
+                finalUrl = PROXY + `selectioncentre.in/wp-content/uploads/2026/01/${num}.${ext}`;
+            }
             
             const card = document.createElement('div');
             card.className = 'card';
@@ -285,12 +289,12 @@
             }
 
             card.innerHTML = `
-                <img src="${proxiedUrl}" alt="Product">
+                <img src="${finalUrl}" alt="Product">
                 <div class="card-title">${nameHTML}</div>
             `;
             
             const shareTitle = p.extra ? `${p.name} (${p.extra})` : p.name;
-            card.onclick = () => openView(proxiedUrl, shareTitle, p.extra);
+            card.onclick = () => openView(finalUrl, shareTitle, p.extra);
             grid.appendChild(card);
         });
     }
