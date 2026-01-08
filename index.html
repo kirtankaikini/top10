@@ -11,7 +11,7 @@
             --accent: #a855f7;
             --glass: rgba(255, 255, 255, 0.85);
             --text-main: #1e293b;
-            --danger: #d0021b; /* Brighter, more urgent red */
+            --danger: #d0021b; 
         }
 
         * {
@@ -103,7 +103,6 @@
             flex-grow: 1;
         }
 
-        /* Red Extra Charge Style */
         .extra-charge {
             color: var(--danger);
             display: block;
@@ -115,7 +114,6 @@
             padding-top: 4px;
         }
 
-        /* REFINED CLEAR FOOTER */
         footer {
             padding: 30px 20px 50px 20px;
             margin-top: 20px;
@@ -125,7 +123,7 @@
             max-width: 600px;
             margin: 0 auto;
             background: #fff;
-            border: 2px solid var(--danger); /* Red border to catch attention */
+            border: 2px solid var(--danger);
             border-radius: 20px;
             padding: 20px;
             text-align: center;
@@ -150,7 +148,6 @@
             line-height: 1.5;
         }
 
-        /* Detail/Share View */
         #detail-view {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -228,7 +225,7 @@
     <div id="share-area">
         <img id="det-img" src="" alt="Product">
         <h2 id="det-title"></h2>
-        <div style="background: #f8fafc; padding: 8px; border-radius: 10px; margin-top: 15px; font-size: 0.7rem; font-weight: 800; color: #64748b; letter-spacing: 1px;">Via Top 10</div>
+        <div style="background: #f8fafc; padding: 8px; border-radius: 10px; margin-top: 15px; font-size: 0.7rem; font-weight: 800; color: #64748b; letter-spacing: 1px;">OFFICIAL TOP 10 CATALOG</div>
     </div>
     
     <div class="actions">
@@ -263,8 +260,9 @@
         { name: "Gold Neck Chain" },
         { name: "Gold Pendent" },
         { name: "Diamond Pendent" },
-        { name: "Air Conditioner 1 ton", extra: "Pay ₹7000 Extra" },
-        { name: "Solar Water Heater 150L", extra: "Pay ₹4000 Extra" }
+        { name: "Air Conditioner 1 ton", extra: "Pay ₹7000 Extra", imgNum: 24 },
+        { name: "Solar Water Heater 150L", extra: "Pay ₹2500 Extra", imgNum: 25 },
+        { name: "Solar Water Heater 200L", extra: "Pay ₹6000 Extra", imgNum: 25 }
     ];
 
     const grid = document.getElementById('grid');
@@ -272,7 +270,7 @@
 
     function init() {
         products.forEach((p, i) => {
-            const num = i + 1;
+            const num = p.imgNum || (i + 1);
             const ext = [16, 18, 22, 25].includes(num) ? 'jpg' : 'png';
             const rawUrl = `selectioncentre.in/wp-content/uploads/2026/01/${num}.${ext}`;
             const proxiedUrl = PROXY + rawUrl;
