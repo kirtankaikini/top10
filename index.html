@@ -248,7 +248,7 @@
         { name: "Dining Table Set", customUrl: "selectioncentre.in/wp-content/uploads/2026/01/9-e1767870221233.jpg" },
         { name: "Cot And Bed" },
         { name: "Corner Sofa Set" },
-        { name: "Inverter" },
+        { name: "Inverter", customUrl: "selectioncentre.in/wp-content/uploads/2026/01/12.jpg" },
         { name: "Mobile" },
         { name: "Computer" },
         { name: "Diamond Earring" },
@@ -274,9 +274,6 @@
             if (p.customUrl) {
                 finalUrl = PROXY + p.customUrl;
             } else {
-                // If imgNum is explicitly provided (like for 16, 18, 22, 24, 25), use it.
-                // Otherwise, calculate based on original index.
-                // Note: Since we removed the item formerly at index 20, we use specific imgNum mapping.
                 const num = p.imgNum || (i + 1);
                 const ext = [16, 18, 22, 25].includes(num) ? 'jpg' : 'png';
                 finalUrl = PROXY + `selectioncentre.in/wp-content/uploads/2026/01/${num}.${ext}`;
